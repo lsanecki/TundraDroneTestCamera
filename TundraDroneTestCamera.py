@@ -8,7 +8,7 @@ import cv2
 import struct
 from product_code import ProductCode
 from db_tundra_drone import DbAmlM2Tester
-from Client import ClientTundraDrone
+from client import ClientTundraDrone
 
 
 class Thread(QThread):
