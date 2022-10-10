@@ -9,6 +9,7 @@ import struct
 from product_code import ProductCode
 from db_tundra_drone import DbAmlM2Tester
 from client import ClientTundraDrone
+from focus_measure import FocusMeasure
 
 
 class Thread(QThread):
@@ -25,10 +26,13 @@ class Thread(QThread):
             client_socket = client.send_command_to_camera_server('Video#A#480#480#640#640')
             data = b""
             payload_size = struct.calcsize("Q")
+
+            threshold = 300
+            focus = FocusMeasure(threshold)
             while True:
                 data, frame = client.download_frame_from_server(client_socket, data, payload_size)
 
-                frame2 = self.detect_blur(frame, 300)
+                frame2 = focus.detect_blur(frame)
 
                 h, w, ch = frame2.shape
                 bytesPerLine = ch * w
@@ -44,27 +48,6 @@ class Thread(QThread):
 
     def stop(self):
         self.terminate()
-
-    def variance_of_laplacian(self, img2):
-        # compute the Laplacian of the image and then return the focus
-        # measure, which is simply the variance of the Laplacian
-        gray = cv2.cvtColor(img2, cv2.COLOR_RGB2BGR)
-        return cv2.Laplacian(gray, cv2.CV_64F).var()
-
-    def BGR2RGB(self, BGR_img):
-        # turning BGR pixel color to RGB
-        rgb_image = cv2.cvtColor(BGR_img, cv2.COLOR_BGR2RGB)
-        return rgb_image
-
-    def detect_blur(self, img, threshold):
-        text = "OK"
-        fm = self.variance_of_laplacian(img)
-        if fm < threshold:
-            text = "NOK"
-        self.testStatus.emit(text)
-        rgb_img = self.BGR2RGB(img)
-        cv2.putText(rgb_img, "{}: {:.2f}".format(text, fm), (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
-        return rgb_img
 
 
 class ControlGui(QWidget, GuiWidget):
