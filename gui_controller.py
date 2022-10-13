@@ -4,18 +4,19 @@ from PyQt5.QtGui import QImage, QPixmap
 from gui_interface import GuiWidget
 from PyQt5.QtWidgets import QApplication, QWidget
 import sys
-import struct
+from thread_preview_server_camera import ThreadPreviewCamera
 from product_code import ProductCode
 from db_tundra_drone import DbAmlM2Tester
-from client import ClientTundraDrone
-from focus_measure import FocusMeasure
 
 
 class GuiController(QWidget, GuiWidget):
     def __init__(self, parent=None, ):
         super(GuiController, self).__init__(parent, )
+        self.th_stream_video = None
         self.status = None
         self.setup_ui(self)
+        self.set_slot_and_connect()
+        self.set_thread_preview_camera()
 
     @pyqtSlot(QImage)
     def set_image(self, image):
@@ -32,10 +33,22 @@ class GuiController(QWidget, GuiWidget):
         self.btn_close.clicked.connect(self.close)
 
     def clicked_btn_start(self):
-        pass
+        if self.th_stream_video.isRunning():
+            print("Stream Running")
+        self.th_stream_video.stop_stream = False
+        self.th_stream_video.start()
+
+    def set_thread_preview_camera(self):
+        self.th_stream_video = ThreadPreviewCamera(self)
+        self.th_stream_video.change_pixmap.connect(self.set_image)
+        self.th_stream_video.setTerminationEnabled(True)
 
     def clicked_btn_stop(self):
-        pass
+        if self.th_stream_video.isRunning():
+            print("Stream Running 1")
+        self.th_stream_video.stop_stream = True
+        if self.th_stream_video.isRunning():
+            print("Stream Running 2")
 
     def clicked_btn_save_db(self):
         pass

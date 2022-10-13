@@ -1,5 +1,5 @@
 import cv2
-
+import numpy as np
 
 class FocusMeasure:
     """Klasa do pomiaru ostrosci zdjecia"""
@@ -64,6 +64,15 @@ class FocusMeasure:
         if _fm < self.threshold:
             _focus_status = "NOK"
         return _fm, _focus_status
+
+    @classmethod
+    def generate_black_image(cls):
+        """
+        Metoda generuje czarny obraz
+        :return: Zwaraca czarny obraz
+        :rtype: numpy.ndarray
+        """
+        return np.zeros((640, 480, 1), dtype="uint8")
 
 
 if __name__ == '__main__':
