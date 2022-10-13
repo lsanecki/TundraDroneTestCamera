@@ -32,7 +32,7 @@ class Thread(QThread):
             while True:
                 data, frame = client.download_frame_from_server(client_socket, data, payload_size)
 
-                frame2 = focus.detect_blur(frame)
+                frame2, status = focus.detect_blur(frame)
 
                 h, w, ch = frame2.shape
                 bytesPerLine = ch * w
@@ -40,7 +40,8 @@ class Thread(QThread):
                 p = convertToQtFormat.scaled(640, 480, Qt.KeepAspectRatio)
                 self.changePixmap.emit(p)
                 if self.stop_stream == True:
-                    cv2.imwrite('out.jpg', frame)
+                    self.testStatus.emit(str(status))
+                    # cv2.imwrite('out.jpg', frame)
                     break
         except Exception as e:
             self.error.emit(str(e))
@@ -58,6 +59,8 @@ class ControlGui(QWidget, GuiWidget):
         self.setup_ui(self)
         self.config_gui_widget()
         self.set_start_widget_parameters()
+        self.set_name_project()
+        self.set_message("Zeskanuj numer SN testowanego produktu")
 
     @pyqtSlot(QImage)
     def set_image(self, image):
@@ -74,9 +77,15 @@ class ControlGui(QWidget, GuiWidget):
         self.btn_stop_test.setEnabled(False)
         self.btn_save_db.setEnabled(False)
 
+    def set_name_project(self):
+        self.lab_select_project.setText("AML_M2*")
+
     def config_gui_widget(self):
         self.connect_btn()
         self.set_t_box_sn()
+
+    def set_message(self, msg):
+        self.lab_message.setText(msg)
 
     def set_t_box_sn(self):
         self.t_box_sn.setEnabled(True)
@@ -93,7 +102,9 @@ class ControlGui(QWidget, GuiWidget):
                 self.btn_start_test.setEnabled(True)
                 print("kod ok")
                 self.t_box_sn.setText(product_code.serial_number)
+                self.set_message("Podlacz kamere i umieść w gniezdzie, a nastepnie kliknij na przycisk Rozpocznij")
             else:
+                self.set_message("Bledny kod zeskanuj SN jeszcze raz")
                 print("kod NOK")
                 self.t_box_sn.clear()
 
@@ -101,6 +112,7 @@ class ControlGui(QWidget, GuiWidget):
         self.btn_start_test.clicked.connect(self.clicked_btn_start)
         self.btn_stop_test.clicked.connect(self.clicked_btn_stop)
         self.btn_save_db.clicked.connect(self.clicked_btn_save_db)
+        self.btn_close.clicked.connect(self.close)
 
     def clicked_btn_start(self):
         self.btn_start_test.setEnabled(False)
@@ -108,49 +120,47 @@ class ControlGui(QWidget, GuiWidget):
 
         self.th_stream_video = Thread(self)
         self.th_stream_video.changePixmap.connect(self.set_image)
+        self.th_stream_video.testStatus.connect(self.set_status)
         self.th_stream_video.setTerminationEnabled(True)
         self.th_stream_video.start()
+        self.set_message("Ustaw ostrość kamery")
 
     def clicked_btn_stop(self):
-        self.th_stream_video.stop_stream = True
-        self.btn_stop_test.setEnabled(False)
-        self.btn_save_db.setEnabled(True)
+        try:
+            self.set_message("Zatrzymano polaczenie z kamera")
+            self.th_stream_video.stop_stream = True
+            print('Running... ', self.th_stream_video.isRunning())
+            self.th_stream_video.wait(1000)
+
+            print('isFinished: ', self.th_stream_video.isFinished())
+            # self.btn_stop_test.setEnabled(False)
+            # self.btn_save_db.setEnabled(True)
+        except Exception as e:
+            print(str(e))
 
     def clicked_btn_save_db(self):
-        self.btn_save_db.setEnabled(False)
+        try:
+            self.set_message("Zapisuje wynik do bazy")
+            self.btn_save_db.setEnabled(False)
+            _pixmap = QPixmap('Image/empty.png')
+            self.p_box_preview_camera.setPixmap(_pixmap)
 
-        frame = cv2.imread('out.jpg')
-        status, frame = self.detect_blur(frame, 300)
-
-        db = DbAmlM2Tester()
-        db.save_to_db(self.t_box_sn.text(), status, "0")
-        self.status = ""
-        self.t_box_sn.clear()
-        self.t_box_sn.setEnabled(True)
-        # czyszczenie tBoxSN
-        # wlaczenie edtycji t_box_sn
-
-    def variance_of_laplacian(self, img2):
-        # compute the Laplacian of the image and then return the focus
-        # measure, which is simply the variance of the Laplacian
-        gray = cv2.cvtColor(img2, cv2.COLOR_RGB2BGR)
-        return cv2.Laplacian(gray, cv2.CV_64F).var()
-
-    def BGR2RGB(self, BGR_img):
-        # turning BGR pixel color to RGB
-        rgb_image = cv2.cvtColor(BGR_img, cv2.COLOR_BGR2RGB)
-        return rgb_image
-
-    def detect_blur(self, img, threshold):
-        text = "OK"
-        fm = self.variance_of_laplacian(img)
-        if fm < threshold:
-            text = "NOK"
-        return text, img
+            db = DbAmlM2Tester()
+            db.save_to_db(self.t_box_sn.text(), self.status, "0")
+            self.status = ""
+            self.t_box_sn.clear()
+            self.t_box_sn.setEnabled(True)
+            self.t_box_sn.setFocus()
+            self.set_message("Zeskanuj numer SN testowanego produktu")
+        except Exception as e:
+            print(str(e))
 
 
 if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    window = ControlGui()
-    window.show()
-    sys.exit(app.exec_())
+    try:
+        app = QApplication(sys.argv)
+        window = ControlGui()
+        window.show()
+        sys.exit(app.exec_())
+    except Exception as e:
+        print(str(e))

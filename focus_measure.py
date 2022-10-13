@@ -43,13 +43,13 @@ class FocusMeasure:
         Metoda wykrywa czy obraz jest rozmazany i zapisuje status jak i wartość ostrości na ramce obrazu
         :param _img: Ramka obrazu do pomiaru ostrości
         :type _img: numpy.ndarray
-        :return: Zwraca framkę obrazu z informacją na temat ostrości
-        :rtype: numpy.ndarray
+        :return: Zwraca ramkę obrazu z informacją na temat ostrości wraz ze statusem
+        :rtype: tuple
         """
         _fm, _text_focus_status = self.measure_focus(_img)
         _rgb_img = self.convert_bgr_to_rgb(_img)
         cv2.putText(_rgb_img, "{}: {:.2f}".format(_text_focus_status, _fm), (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
-        return _rgb_img
+        return _rgb_img, _text_focus_status
 
     def measure_focus(self, _img):
         """
