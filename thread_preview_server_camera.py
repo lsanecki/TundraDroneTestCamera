@@ -34,7 +34,6 @@ class ThreadPreviewCamera(QThread):
                 self.test_status.emit(str(_focus_status))
                 break
 
-
     @classmethod
     def convert_frame_to_qt_image(cls, _frame_with_focus_status):
         _h, _w, _ch = _frame_with_focus_status.shape
