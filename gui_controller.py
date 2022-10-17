@@ -1,6 +1,5 @@
-from PyQt5.QtCore import QThread, Qt, pyqtSignal, pyqtSlot
+from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtGui import QImage, QPixmap
-
 from gui_interface import GuiWidget
 from PyQt5.QtWidgets import QApplication, QWidget
 import sys
@@ -8,6 +7,7 @@ from thread_preview_server_camera import ThreadPreviewCamera
 from product_code import ProductCode
 from states import ListStates
 from db_tundra_drone import DbAmlM2Tester
+from gui_model import GuiModel
 
 
 class GuiController(QWidget, GuiWidget):
@@ -24,11 +24,14 @@ class GuiController(QWidget, GuiWidget):
         self.status_stream = None
         self.th_stream_video = None
         self.status = None
+        self.model_gui = GuiModel()
         self.state_test = ListStates.INIT_TEST
         self.setup_ui(self)
+        self.setWindowTitle("AML_M2_FOCUS_CAMERA")
         self.set_slot_and_connect()
         self.set_thread_preview_camera()
         self.set_name_project()
+        self.set_font()
         self.timer()
 
     @pyqtSlot(QImage)
@@ -54,6 +57,95 @@ class GuiController(QWidget, GuiWidget):
         """
         self.status = _status
         self.set_message("Zatrzymano polaczenie z kamera, Status: {}".format(self.status))
+
+    def set_font(self):
+        """
+        Metoda ustawia wielkosc czcionki w kontrolkach GUI
+        :return:
+        """
+
+        self.set_font_btn_close()
+        self.set_font_btn_save_db()
+        self.set_font_btn_stop_test()
+        self.set_btn_start_test()
+
+        self.set_font_lab_sn_product()
+        self.set_font_t_box_sn()
+        self.set_font_lab_select_project()
+        self.set_font_lab_message()
+
+    def set_font_lab_message(self):
+        """
+        Metoda ustawia czcionke dla etykiety lab_message
+        :return:
+        """
+
+        _font_lab_message = self.lab_message.font()
+        _font_lab_message.setPointSize(self.model_gui.lab_font_size_small)
+        self.lab_message.setFont(_font_lab_message)
+
+    def set_font_lab_select_project(self):
+        """
+        Metoda ustawia czcionke dla etykiety lab_select_project
+        :return:
+        """
+        _font_lab_select_project = self.lab_select_project.font()
+        _font_lab_select_project.setPointSize(self.model_gui.lab_font_size_medium)
+        self.lab_select_project.setFont(_font_lab_select_project)
+
+    def set_font_t_box_sn(self):
+        """
+        Metoda ustawia czcionke dla TextBox t_box_sn
+        :return:
+        """
+        _font_t_box_sn = self.t_box_sn.font()
+        _font_t_box_sn.setPointSize(self.model_gui.t_box_font_size)
+        self.t_box_sn.setFont(_font_t_box_sn)
+
+    def set_font_lab_sn_product(self):
+        """
+        Metoda ustawia czcionke dla etykiety lab_sn_product
+        :return:
+        """
+        _font_lab_sn = self.lab_sn_product.font()
+        _font_lab_sn.setPointSize(self.model_gui.lab_font_size_small)
+        self.lab_sn_product.setFont(_font_lab_sn)
+
+    def set_btn_start_test(self):
+        """
+        Metoda ustawia czcionke dla button btn_start_test
+        :return:
+        """
+        _font_btn_start_test = self.btn_start_test.font()
+        _font_btn_start_test.setPointSize(self.model_gui.btn_font_size)
+        self.btn_start_test.setFont(_font_btn_start_test)
+
+    def set_font_btn_stop_test(self):
+        """
+        Metoda ustawia czcionke dla button btn_stop_test
+        :return:
+        """
+        _font_btn_stop_test = self.btn_stop_test.font()
+        _font_btn_stop_test.setPointSize(self.model_gui.btn_font_size)
+        self.btn_stop_test.setFont(_font_btn_stop_test)
+
+    def set_font_btn_save_db(self):
+        """
+        Metoda ustawia czcionke dla button btn_save_db
+        :return:
+        """
+        _font_btn_save_db = self.btn_save_db.font()
+        _font_btn_save_db.setPointSize(self.model_gui.btn_font_size)
+        self.btn_save_db.setFont(_font_btn_save_db)
+
+    def set_font_btn_close(self):
+        """
+        Metoda ustawia czcionke dla button btn_close
+        :return:
+        """
+        _font_btn_close = self.btn_close.font()
+        _font_btn_close.setPointSize(self.model_gui.btn_font_size)
+        self.btn_close.setFont(_font_btn_close)
 
     def set_slot_and_connect(self):
         """
@@ -213,7 +305,7 @@ class GuiController(QWidget, GuiWidget):
         """
         self.t_box_sn.setEnabled(False)
         self.t_box_sn.setText(self.product_code.serial_number)
-        self.set_message("Podlacz kamere i umieść w gniezdzie, a nastepnie kliknij na przycisk Rozpocznij")
+        self.set_message("Podlacz kamere i umieść w gniezdzie,\n a nastepnie kliknij na przycisk Rozpocznij")
         self.btn_start_test.setEnabled(True)
 
     def state_wait_for_sn(self):

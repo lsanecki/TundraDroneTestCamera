@@ -1,5 +1,5 @@
-from PyQt5.QtGui import QImage, QPixmap
-from PyQt5.QtCore import QThread, Qt, pyqtSignal, pyqtSlot
+from PyQt5.QtGui import QImage
+from PyQt5.QtCore import QThread, Qt, pyqtSignal
 from thread_server_camera_model import ServerCameraModel
 import struct
 from client import ClientTundraDrone
