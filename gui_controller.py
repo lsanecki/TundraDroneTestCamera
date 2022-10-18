@@ -14,6 +14,7 @@ class GuiController(QWidget, GuiWidget):
     """
     Kontroler GUI
     """
+
     def __init__(self, parent=None, ):
         """
         Konstruktor klasy
@@ -57,6 +58,7 @@ class GuiController(QWidget, GuiWidget):
         """
         self.status = _status
         self.set_message("Zatrzymano polaczenie z kamera, Status: {}".format(self.status))
+        self.set_status_test_preview_image(self.status)
 
     def set_font(self):
         """
@@ -200,6 +202,20 @@ class GuiController(QWidget, GuiWidget):
         :return:
         """
         _pixmap = QPixmap('Image/empty.png')
+        self.p_box_preview_camera.setPixmap(_pixmap)
+
+    def set_status_test_preview_image(self, _status):
+        """
+        Wyswietla na p_box status testy
+        :param _status: Status testu
+        :type _status: str
+        :return:
+        """
+        if _status == "OK":
+            _pixmap = QPixmap('Image/status_ok.png')
+        else:
+            _pixmap = QPixmap('Image/status_nok.png')
+
         self.p_box_preview_camera.setPixmap(_pixmap)
 
     def check_t_box_sn(self):
